@@ -1,0 +1,31 @@
+<html ng-app>
+<head>
+<title>Sequencer</title>
+<link rel="stylesheet" type="text/css" href="seq.css" />
+</head>
+<body>
+<div ng-class="['NoteGridContainer']" ng-controller="NoteGridController">
+
+<div>
+Scale: <select ng-model="selected.scale" ng-options="key for (key, value) in scales"></select>
+BPM: <input type="number" ng-model="selected.bpm" ng-change="bpmChanged()" min="1" max="500">
+</div>
+
+<table><tbody>
+<tr ng-repeat="row in noteGrid">
+<td ng-repeat="cell in row"
+    ng-class="['NoteCell', noteCellState(cell)]"
+    ng-click="toggleEnabled(cell)"
+    ></td>
+</tr>
+</tbody></table>
+<button ng-click="toggleRunning()">{{ runningButtonText() }}</button>
+<!--pNaCl csound module-->
+<div id="engine"></div>
+</div>
+<script type="text/javascript"
+        src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+<script type="text/javascript" src="csound.js"></script>
+<script type="text/javascript" src="seq.js"></script>
+</body>
+</html>
