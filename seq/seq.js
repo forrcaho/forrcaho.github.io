@@ -63,6 +63,7 @@ function moduleDidLoad() {
         "outs aOut, aOut\n" +
         "endin\n"
     )
+    document.getElementById('loader').style.display = 'none'
 }
 
 function NoteGridController($scope, $timeout) {
