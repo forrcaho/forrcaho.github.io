@@ -67,19 +67,40 @@ function moduleDidLoad() {
 
 function NoteGridController($scope, $timeout) {
     $scope.scales = scales
-    $scope.selected = { 
+    $scope.selected = {
         scale: $scope.scales['Major ET'],
         bpm: 120,
-	lastBpm: 120
+        lastBpm: 120,
+        colCount: 8
     }
-    
+
     $scope.bpmChanged = function() {
-	if (angular.isNumber($scope.selected.bpm)) { 
-	    $scope.selected.lastBpm = $scope.selected.bpm
-	} else {
-	    $scope.selected.bpm = $scope.selected.lastBpm
-	}
-	console.log("bpmChanged called")
+        if (angular.isNumber($scope.selected.bpm)) {
+            $scope.selected.lastBpm = $scope.selected.bpm
+        } else {
+            $scope.selected.bpm = $scope.selected.lastBpm
+        }
+        console.log("bpmChanged called")
+    }
+
+    $scope.colCountChanged = function() {
+        var oldColCount = $scope.noteGrid[0].length
+        if (!angular.isNumber($scope.selected.colCount)) {
+            $scope.selected.colCount = oldColCount
+            return
+        }
+        var newColCount = $scope.selected.colCount
+        if (newColCount < oldColCount) {
+            for (var row = 0; row < $scope.noteGrid.length; row++) {
+                $scope.noteGrid[row].length = newColCount;
+            }
+        } else {
+            for (var col = oldColCount; col < newColCount; col++) {
+                for (var row = 0; row < $scope.noteGrid.length; row++) {
+                    $scope.noteGrid[row][col] = { enabled: false, active: false }
+                }
+            }
+        }
     }
 
     $scope.noteGrid = noteGrid
@@ -103,16 +124,22 @@ function NoteGridController($scope, $timeout) {
     }
 
     $scope.stopRunning = undefined
-    $scope.gridStep = function(col, lastCol) {
+    $scope.gridStep = function(col) {
+	if (col >= $scope.noteGrid[0].length) {
+	    col = 0
+	}
+	var lastCol = col - 1
+	if (lastCol < 0) {
+	    lastCol = $scope.noteGrid[0].length - 1
+	}
         for (var row = 0; row < $scope.noteGrid.length; row++) {
             $scope.noteGrid[row][lastCol].active = false
             if ($scope.noteGrid[row][col].enabled) {
                 $scope.activateCell(row, col)
             }
         }
-        lastCol = col
         col = (col + 1) % $scope.noteGrid[0].length
-        $scope.stopRunning = $timeout(function () { $scope.gridStep(col, lastCol) }, 60000/$scope.selected.bpm)
+        $scope.stopRunning = $timeout(function () { $scope.gridStep(col) }, 60000/$scope.selected.bpm)
     }
 
     $scope.running = false
@@ -120,7 +147,7 @@ function NoteGridController($scope, $timeout) {
     $scope.toggleRunning = function() {
         $scope.running = ! $scope.running
         if ($scope.running) {
-	    $scope.gridStep(0, $scope.noteGrid[0].length - 1)
+            $scope.gridStep(0)
         } else {
             if (angular.isDefined($scope.stopRunning)) {
                 $timeout.cancel($scope.stopRunning)

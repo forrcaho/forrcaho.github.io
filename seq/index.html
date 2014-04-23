@@ -9,6 +9,8 @@
 <div>
 Scale: <select ng-model="selected.scale" ng-options="key for (key, value) in scales"></select>
 BPM: <input type="number" ng-model="selected.bpm" ng-change="bpmChanged()" min="1" max="500">
+Pattern Length: <input type="number" ng-model="selected.colCount" ng-change="colCountChanged()"
+		       min="2" max="20">
 </div>
 
 <table><tbody>
