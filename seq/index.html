@@ -1,5 +1,10 @@
 <html ng-app>
 <head>
+<script type="text/javascript">
+if (typeof navigator.mimeTypes['application/x-pnacl'] === 'undefined') {
+    window.location = 'unsupported.html'
+}
+</script>
 <title>Sequencer</title>
 <link rel="stylesheet" type="text/css" href="seq.css" />
 </head>
