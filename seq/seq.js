@@ -37,6 +37,24 @@ scales['Minor Just'] = [LOW_NOTE,
                         LOW_NOTE * 9.0/5,
                         LOW_NOTE * 2.0].reverse()
 
+scales['Septimal #1'] = [LOW_NOTE,
+                         LOW_NOTE * 7.0/6,
+                         LOW_NOTE * 5.0/4,
+                         LOW_NOTE * 4.0/3,
+                         LOW_NOTE * 3.0/2,
+                         LOW_NOTE * 7.0/4,
+                         LOW_NOTE * 9.0/5,
+                         LOW_NOTE * 2.0].reverse()
+
+scales['Whole Tone'] = [LOW_NOTE,
+                        LOW_NOTE * Math.pow(2.0, 2.0/12),
+                        LOW_NOTE * Math.pow(2.0, 4.0/12),
+                        LOW_NOTE * Math.pow(2.0, 6.0/12),
+                        LOW_NOTE * Math.pow(2.0, 8.0/12),
+                        LOW_NOTE * Math.pow(2.0, 10.0/12),
+                        LOW_NOTE * 2.0,
+                        LOW_NOTE * Math.pow(2.0, 14.0/12)].reverse()
+
 // build noteGrid
 var rowCount = 8
 var colCount = 8
@@ -126,13 +144,13 @@ function NoteGridController($scope, $timeout) {
 
     $scope.stopRunning = undefined
     $scope.gridStep = function(col) {
-	if (col >= $scope.noteGrid[0].length) {
-	    col = 0
-	}
-	var lastCol = col - 1
-	if (lastCol < 0) {
-	    lastCol = $scope.noteGrid[0].length - 1
-	}
+        if (col >= $scope.noteGrid[0].length) {
+            col = 0
+        }
+        var lastCol = col - 1
+        if (lastCol < 0) {
+            lastCol = $scope.noteGrid[0].length - 1
+        }
         for (var row = 0; row < $scope.noteGrid.length; row++) {
             $scope.noteGrid[row][lastCol].active = false
             if ($scope.noteGrid[row][col].enabled) {
