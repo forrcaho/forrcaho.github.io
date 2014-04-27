@@ -1,6 +1,15 @@
 // calculate scales
 var LOW_NOTE = 293.6647679174076 // D4
 var scales = {}
+scales['Eight Tone ET'] = [LOW_NOTE,
+                           LOW_NOTE * Math.pow(2.0, 1.0/7),
+                           LOW_NOTE * Math.pow(2.0, 2.0/7),
+                           LOW_NOTE * Math.pow(2.0, 3.0/7),
+                           LOW_NOTE * Math.pow(2.0, 4.0/7),
+                           LOW_NOTE * Math.pow(2.0, 5.0/7),
+                           LOW_NOTE * Math.pow(2.0, 6.0/7),
+                           LOW_NOTE * 2.0].reverse()
+
 scales['Major ET'] = [LOW_NOTE,
                       LOW_NOTE * Math.pow(2.0, 2.0/12),
                       LOW_NOTE * Math.pow(2.0, 4.0/12),
@@ -89,36 +98,88 @@ function NoteGridController($scope, $timeout) {
     $scope.selected = {
         scale: $scope.scales['Major ET'],
         bpm: 120,
-        lastBpm: 120,
         colCount: 8
     }
 
+    /*
+       While the user is actively changing the BPM, we expect some transitional values
+       we want to ignore. This code waits until BPM has stopped changing for 250ms before
+       accepting the value.  If a non-numeric is entered (e.g. blanking the field) and
+       stays for 1000 ms, the last numeric value (which is still in effect) is put back
+       into the field.
+
+       If there is a speedup > 10x, the user was probably still entering the number, so make 
+       sure we speed up right away.
+    */
+
+    $scope.minBpm = 1
+    $scope.maxBpm = 500
+    $scope.bpm = $scope.selected.bpm
+    $scope.changeBpm = undefined
     $scope.bpmChanged = function() {
-        if (angular.isNumber($scope.selected.bpm)) {
-            $scope.selected.lastBpm = $scope.selected.bpm
-        } else {
-            $scope.selected.bpm = $scope.selected.lastBpm
+        if (angular.isDefined($scope.changeBpm)) {
+            $timeout.cancel($scope.changeBpm)
+            $scope.changeBpm = undefined
         }
-        console.log("bpmChanged called")
+        if (angular.isNumber($scope.selected.bpm)) {
+            $scope.changeBpm = $timeout(function() {
+                if ($scope.selected.bpm > $scope.maxBpm) {
+                    $scope.selected.bpm = $scope.maxBpm
+                } else if ($scope.selected.bpm < $scope.minBpm) {
+                    $scope.selected.bpm = $scope.minBpm
+                }
+                var speedUp = ($scope.selected.bpm >= 10 * $scope.bpm)
+                $scope.bpm = $scope.selected.bpm
+                if (speedUp) {
+                    if (angular.isDefined($scope.triggerEvent)) {
+                        $timeout.cancel($scope.triggerEvent)
+                        $scope.triggerEvent = $timeout($scope.gridStep, 60000/$scope.bpm)
+                    }
+                }
+            }, 250)
+        } else {
+            $scope.changeBpm = $timeout(function() { $scope.selected.bpm = $scope.bpm }, 1000)
+        }
     }
 
+    /*
+      We do something very similar for the column count. These should really be abstracted to use
+      the same code, but that's tricky because the BPM change has the extra speedup check. It's on
+      the list for refactoring.
+     */
+    $scope.minColCount = 2
+    $scope.maxColCount = 20
+    $scope.changeColCount = undefined
     $scope.colCountChanged = function() {
-        var oldColCount = $scope.noteGrid[0].length
-        if (!angular.isNumber($scope.selected.colCount)) {
-            $scope.selected.colCount = oldColCount
-            return
+        if (angular.isDefined($scope.changeColCount)) {
+            $timeout.cancel($scope.changeColCount)
+            $scope.changeColCount = undefined
         }
-        var newColCount = $scope.selected.colCount
-        if (newColCount < oldColCount) {
-            for (var row = 0; row < $scope.noteGrid.length; row++) {
-                $scope.noteGrid[row].length = newColCount;
-            }
-        } else {
-            for (var col = oldColCount; col < newColCount; col++) {
-                for (var row = 0; row < $scope.noteGrid.length; row++) {
-                    $scope.noteGrid[row][col] = { enabled: false, active: false }
+        if (angular.isNumber($scope.selected.colCount)) {
+            $scope.changeColCount = $timeout(function() {
+                var oldColCount = $scope.noteGrid[0].length
+                var newColCount = $scope.selected.colCount
+                if (newColCount < $scope.minColCount) {
+                    newColCount = $scope.minColCount
+                } else if (newColCount > $scope.maxColCount) {
+                    newColCount = $scope.maxColCount
                 }
-            }
+                if (newColCount < oldColCount) {
+                    for (var row = 0; row < $scope.noteGrid.length; row++) {
+                        $scope.noteGrid[row].length = newColCount;
+                    }
+                } else {
+                    for (var col = oldColCount; col < newColCount; col++) {
+                        for (var row = 0; row < $scope.noteGrid.length; row++) {
+                            $scope.noteGrid[row][col] = { enabled: false, active: false }
+                        }
+                    }
+                }
+            }, 250)
+        } else {
+            $scope.changeColCount = $timeout(function() {
+                $scope.selected.colCount = $scope.noteGrid[0].length
+            }, 1000)
         }
     }
 
@@ -135,18 +196,20 @@ function NoteGridController($scope, $timeout) {
         var freq = $scope.selected.scale[row]
         var event = "i1 0 0.5 -12 " + freq
         csound.Event(event)
-        console.log(event)
+        console.debug(event)
     }
 
     $scope.toggleEnabled = function(cell) {
         cell.enabled = ! cell.enabled
     }
 
-    $scope.stopRunning = undefined
-    $scope.gridStep = function(col) {
-        if (col >= $scope.noteGrid[0].length) {
-            col = 0
+    $scope.eventCol = 0
+    $scope.triggerEvent = undefined
+    $scope.gridStep = function() {
+        if ($scope.eventCol >= $scope.noteGrid[0].length) {
+            $scope.eventCol = 0
         }
+        var col = $scope.eventCol
         var lastCol = col - 1
         if (lastCol < 0) {
             lastCol = $scope.noteGrid[0].length - 1
@@ -157,8 +220,8 @@ function NoteGridController($scope, $timeout) {
                 $scope.activateCell(row, col)
             }
         }
-        col = (col + 1) % $scope.noteGrid[0].length
-        $scope.stopRunning = $timeout(function () { $scope.gridStep(col) }, 60000/$scope.selected.bpm)
+        $scope.eventCol = (col + 1) % $scope.noteGrid[0].length
+        $scope.triggerEvent = $timeout($scope.gridStep, 60000/$scope.bpm)
     }
 
     $scope.running = false
@@ -168,9 +231,9 @@ function NoteGridController($scope, $timeout) {
         if ($scope.running) {
             $scope.gridStep(0)
         } else {
-            if (angular.isDefined($scope.stopRunning)) {
-                $timeout.cancel($scope.stopRunning)
-                $scope.stopRunning = undefined
+            if (angular.isDefined($scope.triggerEvent)) {
+                $timeout.cancel($scope.triggerEvent)
+                $scope.triggerEvent = undefined
                 for (var row = 0; row < $scope.noteGrid.length; row++) {
                     for (var col = 0; col < $scope.noteGrid[row].length; col++) {
                         $scope.noteGrid[row][col].active = false
