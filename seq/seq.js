@@ -64,6 +64,42 @@ scales['Whole Tone'] = [LOW_NOTE,
                         LOW_NOTE * 2.0,
                         LOW_NOTE * Math.pow(2.0, 14.0/12)].reverse()
 
+var instruments = {}
+instruments['Organ'] = {
+    number: 1,
+    lines: [
+        "iDur = p3",
+        "iFreq = p4",
+        "aOut vco2 ampdbfs(-12), iFreq",
+        "aEnv linseg 0, 0.05, 1, iDur - 0.1, 1, 0.05, 0, 0.1, 0",
+        "aOut = aOut * aEnv",
+        "aOut moogladder aOut, 2000, 0.3",
+        "outs aOut, aOut"
+    ]
+}
+instruments['Plucked String'] = {
+    number: 2,
+    lines: [
+        "iDur = p3",
+        "iFreq = p4",
+        "aOut pluck ampdbfs(-12), iFreq, iFreq, 0, 1",
+        "aEnv linseg 1, iDur - 0.05, 1, 0.05, 0, 0.1, 0",
+        "aOut = aOut * aEnv",
+        "outs aOut, aOut"
+        ]
+}
+instruments['Sine Wave'] = {
+    number: 3,
+    lines: [
+        "iDur = p3",
+        "iFreq = p4",
+        "aOut poscil ampdbfs(-12), iFreq",
+        "aEnv linseg 0, 0.05, 1, iDur - 0.1, 1, 0.05, 0, 0.1, 0",
+        "aOut = aOut * aEnv",
+        "outs aOut, aOut"
+        ]
+}
+
 // build noteGrid
 var rowCount = 8
 var colCount = 8
@@ -79,22 +115,25 @@ for (var i = 0 ; i < noteGrid.length; i++) {
 
 function moduleDidLoad() {
     csound.Play()
-    csound.CompileOrc(
-        "instr 1\n" +
-        "iFreq = p4\n" +
-        "aEnv linseg 0, 0.05, 1, p3 - 0.1, 1, 0.05, 0, 0.1, 0\n" +
-        "aOut vco2 ampdbfs(-12), iFreq\n" +
-        "aOut = aOut * aEnv\n" +
-        "aOut moogladder aOut, 2000, 0.3\n" +
-        "outs aOut, aOut\n" +
-        "endin\n"
-    )
+    var orchestra = ""
+    for (var name in instruments) {
+        instrument = instruments[name]
+        orchestra += "instr " + instrument.number + "\n"
+        for (var i = 0 ; i < instrument.lines.length; i++) {
+            orchestra += instrument.lines[i] + "\n"
+        }
+        orchestra += "endin\n"
+    }
+    console.log(orchestra)
+    csound.CompileOrc(orchestra)
     document.getElementById('loader').style.display = 'none'
 }
 
 function NoteGridController($scope, $timeout) {
     $scope.scales = scales
+    $scope.instruments = instruments
     $scope.selected = {
+        instrument: $scope.instruments['Organ'],
         scale: $scope.scales['Major ET'],
         bpm: 120,
         colCount: 8
@@ -156,13 +195,13 @@ function NoteGridController($scope, $timeout) {
         }
         if (angular.isNumber($scope.selected.colCount)) {
             $scope.changeColCount = $timeout(function() {
+                if ($scope.selected.colCount < $scope.minColCount) {
+                    $scope.selected.colCount = $scope.minColCount
+                } else if ($scope.selected.colCount > $scope.maxColCount) {
+                    $scope.selected.colCount = $scope.maxColCount
+                }
                 var oldColCount = $scope.noteGrid[0].length
                 var newColCount = $scope.selected.colCount
-                if (newColCount < $scope.minColCount) {
-                    newColCount = $scope.minColCount
-                } else if (newColCount > $scope.maxColCount) {
-                    newColCount = $scope.maxColCount
-                }
                 if (newColCount < oldColCount) {
                     for (var row = 0; row < $scope.noteGrid.length; row++) {
                         $scope.noteGrid[row].length = newColCount;
@@ -194,7 +233,7 @@ function NoteGridController($scope, $timeout) {
         // csound thing here to play note
         var freq = $scope.selected.scale[row]
         var duration = 60/$scope.bpm
-        var event = "i1 0 " + duration + " " + freq
+        var event = "i" + $scope.selected.instrument.number + " 0 " + duration + " " + freq
         csound.Event(event)
         console.debug(event)
     }
