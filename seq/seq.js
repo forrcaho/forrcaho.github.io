@@ -81,10 +81,9 @@ function moduleDidLoad() {
     csound.Play()
     csound.CompileOrc(
         "instr 1\n" +
-        "iAmpl = ampdbfs(p4)\n" +
-        "iFreq = p5\n" +
+        "iFreq = p4\n" +
         "aEnv linseg 0, 0.05, 1, p3 - 0.1, 1, 0.05, 0\n" +
-        "aOut vco2 iAmpl, iFreq\n" +
+        "aOut vco2 ampdbfs(-12), iFreq\n" +
         "aOut = aOut * aEnv\n" +
         "aOut moogladder aOut, 2000, 0.3\n" +
         "outs aOut, aOut\n" +
@@ -194,9 +193,19 @@ function NoteGridController($scope, $timeout) {
         $scope.noteGrid[row][col].active = true
         // csound thing here to play note
         var freq = $scope.selected.scale[row]
-        var event = "i1 0 0.5 -12 " + freq
+        var event = "i1 0 0.5 " + freq
         csound.Event(event)
         console.debug(event)
+    }
+
+    $scope.mouseIsDown = false
+    $scope.setMouseDown = function(state) {
+        $scope.mouseIsDown = state
+    }
+    $scope.mouseEnteredCell = function(cell) {
+        if ($scope.mouseIsDown) {
+            $scope.toggleEnabled(cell)
+        }
     }
 
     $scope.toggleEnabled = function(cell) {

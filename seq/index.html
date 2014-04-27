@@ -16,7 +16,8 @@ if (typeof navigator.mimeTypes['application/x-pnacl'] === 'undefined') {
 <a href="http://en.wikipedia.org/wiki/Wave_packet"><img src="wave_packet.gif" /></a>
 </div>
 
-<div ng-class="['NoteGridContainer']" ng-controller="NoteGridController">
+<div ng-class="['NoteGridContainer']" ng-controller="NoteGridController"
+     ng-mousedown="setMouseDown(true)" ng-mouseup="setMouseDown(false)">
 
 <div>
 Scale: <select ng-model="selected.scale" ng-options="key for (key, value) in scales"></select>
@@ -28,7 +29,8 @@ Pattern Length: <input type="number" ng-model="selected.colCount" ng-change="col
 <tr ng-repeat="row in noteGrid">
 <td ng-repeat="cell in row"
     ng-class="['NoteCell', noteCellState(cell)]"
-    ng-click="toggleEnabled(cell)"
+    ng-mousedown="toggleEnabled(cell)"
+    ng-mouseenter="mouseEnteredCell(cell)"
     ></td>
 </tr>
 </tbody></table>
