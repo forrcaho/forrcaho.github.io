@@ -1,6 +1,11 @@
 .NoteGridContainer {
     background-color: #18d8e0;
     padding: 50px;
+    width: 1200px;
+}
+
+.NumericInput {
+    width: 50px;
 }
 
 .NoteCell {

@@ -1,15 +1,6 @@
 // calculate scales
 var LOW_NOTE = 293.6647679174076 // D4
 var scales = {}
-scales['Eight Tone ET'] = [LOW_NOTE,
-                           LOW_NOTE * Math.pow(2.0, 1.0/7),
-                           LOW_NOTE * Math.pow(2.0, 2.0/7),
-                           LOW_NOTE * Math.pow(2.0, 3.0/7),
-                           LOW_NOTE * Math.pow(2.0, 4.0/7),
-                           LOW_NOTE * Math.pow(2.0, 5.0/7),
-                           LOW_NOTE * Math.pow(2.0, 6.0/7),
-                           LOW_NOTE * 2.0].reverse()
-
 scales['Major ET'] = [LOW_NOTE,
                       LOW_NOTE * Math.pow(2.0, 2.0/12),
                       LOW_NOTE * Math.pow(2.0, 4.0/12),
@@ -55,6 +46,15 @@ scales['Septimal #1'] = [LOW_NOTE,
                          LOW_NOTE * 9.0/5,
                          LOW_NOTE * 2.0].reverse()
 
+scales['Seven Tone ET'] = [LOW_NOTE,
+                           LOW_NOTE * Math.pow(2.0, 1.0/7),
+                           LOW_NOTE * Math.pow(2.0, 2.0/7),
+                           LOW_NOTE * Math.pow(2.0, 3.0/7),
+                           LOW_NOTE * Math.pow(2.0, 4.0/7),
+                           LOW_NOTE * Math.pow(2.0, 5.0/7),
+                           LOW_NOTE * Math.pow(2.0, 6.0/7),
+                           LOW_NOTE * 2.0].reverse()
+
 scales['Whole Tone'] = [LOW_NOTE,
                         LOW_NOTE * Math.pow(2.0, 2.0/12),
                         LOW_NOTE * Math.pow(2.0, 4.0/12),
@@ -82,7 +82,7 @@ function moduleDidLoad() {
     csound.CompileOrc(
         "instr 1\n" +
         "iFreq = p4\n" +
-        "aEnv linseg 0, 0.05, 1, p3 - 0.1, 1, 0.05, 0\n" +
+        "aEnv linseg 0, 0.05, 1, p3 - 0.1, 1, 0.05, 0, 0.1, 0\n" +
         "aOut vco2 ampdbfs(-12), iFreq\n" +
         "aOut = aOut * aEnv\n" +
         "aOut moogladder aOut, 2000, 0.3\n" +
@@ -102,7 +102,7 @@ function NoteGridController($scope, $timeout) {
 
     /*
        While the user is actively changing the BPM, we expect some transitional values
-       we want to ignore. This code waits until BPM has stopped changing for 250ms before
+       we want to ignore. This code waits until BPM has stopped changing for 350ms before
        accepting the value.  If a non-numeric is entered (e.g. blanking the field) and
        stays for 1000 ms, the last numeric value (which is still in effect) is put back
        into the field.
@@ -111,7 +111,7 @@ function NoteGridController($scope, $timeout) {
        sure we speed up right away.
     */
 
-    $scope.minBpm = 1
+    $scope.minBpm = 30
     $scope.maxBpm = 500
     $scope.bpm = $scope.selected.bpm
     $scope.changeBpm = undefined
@@ -135,7 +135,7 @@ function NoteGridController($scope, $timeout) {
                         $scope.triggerEvent = $timeout($scope.gridStep, 60000/$scope.bpm)
                     }
                 }
-            }, 250)
+            }, 350)
         } else {
             $scope.changeBpm = $timeout(function() { $scope.selected.bpm = $scope.bpm }, 1000)
         }
@@ -174,7 +174,7 @@ function NoteGridController($scope, $timeout) {
                         }
                     }
                 }
-            }, 250)
+            }, 350)
         } else {
             $scope.changeColCount = $timeout(function() {
                 $scope.selected.colCount = $scope.noteGrid[0].length
@@ -193,7 +193,8 @@ function NoteGridController($scope, $timeout) {
         $scope.noteGrid[row][col].active = true
         // csound thing here to play note
         var freq = $scope.selected.scale[row]
-        var event = "i1 0 0.5 " + freq
+        var duration = 60/$scope.bpm
+        var event = "i1 0 " + duration + " " + freq
         csound.Event(event)
         console.debug(event)
     }
