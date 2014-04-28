@@ -35,8 +35,9 @@ Pattern Length: <input ng-class="['NumericInput']" type="number"
 </td></tr>
 </tbody></table>
 <button ng-click="randomize()">Random</button>
-
-
+<button ng-click="clear()">Clear</button>
+<button ng-click="invert()">Invert</button>
+<button ng-click="retrograde()">Retrograde</button>
 <table><tbody>
 <tr ng-repeat="row in noteGrid">
 <td ng-repeat="cell in row"

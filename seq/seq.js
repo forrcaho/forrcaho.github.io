@@ -252,24 +252,64 @@ function NoteGridController($scope, $timeout) {
         cell.enabled = ! cell.enabled
     }
 
+    $scope.clear = function() {
+        for (var col = 0; col < $scope.noteGrid[0].length; col++) {
+            for (var row = 0; row < $scope.noteGrid.length; row++) {
+                $scope.noteGrid[row][col].enabled = false
+            }
+        }
+    }
+
     function enableRandomRow(col) {
         var randomRow = Math.floor(Math.random() * $scope.noteGrid.length * 0.9999999)
         $scope.noteGrid[randomRow][col].enabled = true
     }
 
     $scope.randomize = function() {
+        $scope.clear()
         for (var col = 0; col < $scope.noteGrid[0].length; col++) {
-            for (var row = 0; row < $scope.noteGrid.length; row++) {
-                $scope.noteGrid[row][col].enabled = false
-            }
             if (Math.random() > 0.88) { continue }
             enableRandomRow(col)
-            if (Math.random() > 0.66) { continue }
+            if (Math.random() > 0.70) { continue }
             enableRandomRow(col)
-            if (Math.random() > 0.44) { continue }
+            if (Math.random() > 0.52) { continue }
             enableRandomRow(col)
-            if (Math.random() > 0.22) { continue }
+            if (Math.random() > 0.34) { continue }
             enableRandomRow(col)
+            if (Math.random() > 0.16) { continue }
+            enableRandomRow(col)
+            if (Math.random() > 0.02) { continue }
+            enableRandomRow(col)
+        }
+    }
+
+    $scope.invert = function() {
+        var lowRow = 0
+        var hiRow = $scope.noteGrid.length - 1
+        var tmpCell
+        while (hiRow > lowRow) {
+            for (var col = 0; col < $scope.noteGrid[0].length; col++) {
+                tmpCell = $scope.noteGrid[lowRow][col]
+                $scope.noteGrid[lowRow][col] = $scope.noteGrid[hiRow][col]
+                $scope.noteGrid[hiRow][col] = tmpCell
+            }
+            lowRow++
+            hiRow--
+        }
+    }
+
+    $scope.retrograde = function() {
+        var lowCol = 0
+        var hiCol = $scope.noteGrid[0].length - 1
+        var tmpCell
+        while (hiCol > lowCol) {
+            for (var row = 0; row < $scope.noteGrid.length; row++) {
+                tmpCell = $scope.noteGrid[row][lowCol]
+                $scope.noteGrid[row][lowCol] = $scope.noteGrid[row][hiCol]
+                $scope.noteGrid[row][hiCol] = tmpCell
+            }
+            lowCol++
+            hiCol--
         }
     }
 
