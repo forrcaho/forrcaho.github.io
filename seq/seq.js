@@ -93,7 +93,7 @@ instruments['Sine Wave'] = {
     lines: [
         "iDur = p3",
         "iFreq = p4",
-        "aOut poscil ampdbfs(-12), iFreq",
+        "aOut poscil ampdbfs(-18), iFreq",
         "aEnv linseg 0, 0.05, 1, iDur - 0.1, 1, 0.05, 0, 0.1, 0",
         "aOut = aOut * aEnv",
         "outs aOut, aOut"
