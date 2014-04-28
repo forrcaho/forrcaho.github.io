@@ -124,7 +124,7 @@ function moduleDidLoad() {
         }
         orchestra += "endin\n"
     }
-    console.log(orchestra)
+    console.debug(orchestra)
     csound.CompileOrc(orchestra)
     document.getElementById('loader').style.display = 'none'
 }
@@ -250,6 +250,27 @@ function NoteGridController($scope, $timeout) {
 
     $scope.toggleEnabled = function(cell) {
         cell.enabled = ! cell.enabled
+    }
+
+    function enableRandomRow(col) {
+        var randomRow = Math.floor(Math.random() * $scope.noteGrid.length * 0.9999999)
+        $scope.noteGrid[randomRow][col].enabled = true
+    }
+
+    $scope.randomize = function() {
+        for (var col = 0; col < $scope.noteGrid[0].length; col++) {
+            for (var row = 0; row < $scope.noteGrid.length; row++) {
+                $scope.noteGrid[row][col].enabled = false
+            }
+            if (Math.random() > 0.88) { continue }
+            enableRandomRow(col)
+            if (Math.random() > 0.66) { continue }
+            enableRandomRow(col)
+            if (Math.random() > 0.44) { continue }
+            enableRandomRow(col)
+            if (Math.random() > 0.22) { continue }
+            enableRandomRow(col)
+        }
     }
 
     $scope.eventCol = 0
