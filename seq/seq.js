@@ -99,6 +99,18 @@ instruments['Sine Wave'] = {
         "outs aOut, aOut"
         ]
 }
+instruments['Bell'] = {
+    number: 4,
+    lines: [
+        "iDur = p3",
+        "iFreq = p4",
+	"aOut fmbell ampdbfs(-42), iFreq, 15, 15, 0.005, 6",
+        "aEnv linseg 0, 0.025, 1, iDur - 0.075, 1, 0.05, 0, 0.1, 0",
+        "aOut = aOut * aEnv",
+	"outs aOut, aOut"
+    ]
+}
+
 
 // build noteGrid
 var rowCount = 8
