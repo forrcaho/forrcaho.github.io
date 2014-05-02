@@ -104,8 +104,8 @@ instruments['Bell'] = {
     lines: [
         "iDur = p3",
         "iFreq = p4",
-	"aOut fmbell ampdbfs(-42), iFreq, 15, 15, 0.005, 6",
-        "aEnv linseg 0, 0.025, 1, iDur - 0.075, 1, 0.05, 0, 0.1, 0",
+	"aOut fmbell ampdbfs(-38), iFreq, 15, 15, 0.005, 6",
+        "aEnv linseg 0, 0.01, 1, iDur - 0.11, 1, 0.1, 0, 0.1, 0",
         "aOut = aOut * aEnv",
 	"outs aOut, aOut"
     ]
@@ -152,82 +152,116 @@ function NoteGridController($scope, $timeout) {
     }
 
     /*
-       While the user is actively changing the BPM, we expect some transitional values
-       we want to ignore. This code waits until BPM has stopped changing for 350ms before
-       accepting the value.  If a non-numeric is entered (e.g. blanking the field) and
-       stays for 1000 ms, the last numeric value (which is still in effect) is put back
-       into the field.
+      Change BPM code. This is a real mess, but it works (/me crosses fingers).
+ 
+      The problem is that there are two ways the user can change BPM: by using the
+      spinner arrows, and by typing in numbers. When the spinner arrows are used, we
+      want to respond right away, but when the user is typing in a number, we want to 
+      give them some time to complete typing.
 
-       If there is a speedup > 10x, the user was probably still entering the number, so make 
-       sure we speed up right away.
+      We do this by calling our change function (changeBpmFunction()) synchronously if 
+      the bpm value has changed by 1, because this means the user is probably using the
+      spinner arrows, but call it asynchronously with $timeout if the difference is 
+      greater, because then the user is typing in a number.
+
+      The cast of characters:
+
+      $scope.bpm              -- bpm value actually used
+      $scope.maxBpm           -- max bpm value, reset to this if exceeded
+      $scope.minBpm           -- min bpm value, reset to this if underrun
+      $scope.selected.bpm     -- bpm value entered, set by AngularJS
+      $scope.bpmChanged       -- function called by AngularJS when user changes bpm
+      changeBpmFunction       -- function called when bpm is changed (note local scope)
+                                 called either synchronously or asyncrhonously
+      $scope.changeBpmPromise -- promise returned when changeBpmFunction is called
+                                 asynchronously
     */
 
     $scope.minBpm = 30
     $scope.maxBpm = 500
     $scope.bpm = $scope.selected.bpm
-    $scope.changeBpm = undefined
-    $scope.bpmChanged = function() {
-        if (angular.isDefined($scope.changeBpm)) {
-            $timeout.cancel($scope.changeBpm)
-            $scope.changeBpm = undefined
+    $scope.changeBpmPromise = undefined
+
+    var changeBpmFunction = function() {
+        if ($scope.selected.bpm > $scope.maxBpm) {
+            $scope.selected.bpm = $scope.maxBpm
+        } else if ($scope.selected.bpm < $scope.minBpm) {
+            $scope.selected.bpm = $scope.minBpm
         }
-        if (angular.isNumber($scope.selected.bpm)) {
-            $scope.changeBpm = $timeout(function() {
-                if ($scope.selected.bpm > $scope.maxBpm) {
-                    $scope.selected.bpm = $scope.maxBpm
-                } else if ($scope.selected.bpm < $scope.minBpm) {
-                    $scope.selected.bpm = $scope.minBpm
-                }
-                var speedUp = ($scope.selected.bpm >= 10 * $scope.bpm)
-                $scope.bpm = $scope.selected.bpm
-                if (speedUp) {
-                    if (angular.isDefined($scope.triggerEvent)) {
-                        $timeout.cancel($scope.triggerEvent)
-                        $scope.triggerEvent = $timeout($scope.gridStep, 60000/$scope.bpm)
-                    }
-                }
-            }, 350)
-        } else {
-            $scope.changeBpm = $timeout(function() { $scope.selected.bpm = $scope.bpm }, 1000)
+        var speedUp = ($scope.selected.bpm >= 10 * $scope.bpm)
+        $scope.bpm = $scope.selected.bpm
+        if (speedUp) {
+            if (angular.isDefined($scope.triggerEvent)) {
+                $timeout.cancel($scope.triggerEvent)
+                $scope.triggerEvent = $timeout($scope.gridStep, 60000/$scope.bpm)
+            }
         }
     }
 
+    $scope.bpmChanged = function() {
+        if (angular.isDefined($scope.changeBpmPromise)) {
+ 	    $timeout.cancel($scope.changeBpmPromise)
+	    $scope.changeBpmPromise = undefined
+        }
+        if (angular.isNumber($scope.selected.bpm)) {
+	    if (Math.abs($scope.selected.bpm - $scope.bpm) == 1) {
+		changeBpmFunction()
+	    } else {
+		$scope.changeBpmPromise = $timeout(changeBpmFunction, 500)
+	    }
+        } else {
+            $scope.changeBpmPromise = $timeout(function() { 
+		$scope.selected.bpm = $scope.bpm
+	    }, 1000)
+        }
+    }
+
+
     /*
-      We do something very similar for the column count. These should really be abstracted to use
-      the same code, but that's tricky because the BPM change has the extra speedup check. It's on
-      the list for refactoring.
+      Change Pattern Length code. This follows the same strategy as the change BPM
+      code above. This really should be abstracted so both functions can use the 
+      same code, but I haven't figured out how to do that yet. It's on the list for
+      refactoring. Patches welcome!
      */
+
     $scope.minColCount = 2
     $scope.maxColCount = 20
-    $scope.changeColCount = undefined
+    $scope.changeColCountPromise = undefined
+
+    var changeColCountFunction = function() {
+        if ($scope.selected.colCount < $scope.minColCount) {
+            $scope.selected.colCount = $scope.minColCount
+        } else if ($scope.selected.colCount > $scope.maxColCount) {
+            $scope.selected.colCount = $scope.maxColCount
+        }
+        var oldColCount = $scope.noteGrid[0].length
+        var newColCount = $scope.selected.colCount
+        if (newColCount < oldColCount) {
+            for (var row = 0; row < $scope.noteGrid.length; row++) {
+                $scope.noteGrid[row].length = newColCount;
+            }
+        } else {
+            for (var col = oldColCount; col < newColCount; col++) {
+                for (var row = 0; row < $scope.noteGrid.length; row++) {
+                    $scope.noteGrid[row][col] = { enabled: false, active: false }
+                }
+            }
+        }
+    }
+
     $scope.colCountChanged = function() {
-        if (angular.isDefined($scope.changeColCount)) {
-            $timeout.cancel($scope.changeColCount)
-            $scope.changeColCount = undefined
+        if (angular.isDefined($scope.changeColCountPromise)) {
+            $timeout.cancel($scope.changeColCountPromise)
+            $scope.changeColCountPromise = undefined
         }
         if (angular.isNumber($scope.selected.colCount)) {
-            $scope.changeColCount = $timeout(function() {
-                if ($scope.selected.colCount < $scope.minColCount) {
-                    $scope.selected.colCount = $scope.minColCount
-                } else if ($scope.selected.colCount > $scope.maxColCount) {
-                    $scope.selected.colCount = $scope.maxColCount
-                }
-                var oldColCount = $scope.noteGrid[0].length
-                var newColCount = $scope.selected.colCount
-                if (newColCount < oldColCount) {
-                    for (var row = 0; row < $scope.noteGrid.length; row++) {
-                        $scope.noteGrid[row].length = newColCount;
-                    }
-                } else {
-                    for (var col = oldColCount; col < newColCount; col++) {
-                        for (var row = 0; row < $scope.noteGrid.length; row++) {
-                            $scope.noteGrid[row][col] = { enabled: false, active: false }
-                        }
-                    }
-                }
-            }, 350)
+	    if (Math.abs($scope.noteGrid[0].length - $scope.selected.colCount) == 1) {
+		changeColCountFunction()
+	    } else {
+		$scope.changeColCountPromise = $timeout(changeColCountFunction, 500)
+	    }
         } else {
-            $scope.changeColCount = $timeout(function() {
+            $scope.changeColCountPromise = $timeout(function() {
                 $scope.selected.colCount = $scope.noteGrid[0].length
             }, 1000)
         }
