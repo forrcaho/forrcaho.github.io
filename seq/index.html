@@ -1,4 +1,4 @@
-<html ng-app>
+<html ng-app="seqApp">
 <head>
 <script type="text/javascript">
 if (typeof navigator.mimeTypes['application/x-pnacl'] === 'undefined') {
@@ -17,7 +17,7 @@ if (typeof navigator.mimeTypes['application/x-pnacl'] === 'undefined') {
 </div>
 
 <div ng-class="['NoteGridContainer']" ng-controller="NoteGridController"
-     ng-mousedown="setMouseDown(true)" ng-mouseup="setMouseDown(false)">
+     fc-mouse-state="mouseIsDown">
 
 <table><tbody>
 <tr><td>
@@ -27,17 +27,29 @@ Instrument: <select ng-model="selected.instrument"
                     ng-options="key for (key, value) in instruments"></select>
 </td></tr>
 <tr><td>
-BPM: <input ng-class="['NumericInput']" type="number"
-            ng-model="selected.bpm" ng-change="bpmChanged()" >
+BPM: <fc-number-input fc-min="30" fc-max="500"
+		      fc-model="selected.bpm">
 </td><td>
-Pattern Length: <input ng-class="['NumericInput']" type="number"
-                       ng-model="selected.colCount" ng-change="colCountChanged()" >
+Pattern Length: <fc-number-input fc-min="2" fc-max="20"
+				 fc-model="selected.colCount"
+				 fc-change="changeColCount()">
 </td></tr>
 </tbody></table>
 <button ng-click="randomize()">Random</button>
 <button ng-click="clear()">Clear</button>
 <button ng-click="invert()">Invert</button>
 <button ng-click="retrograde()">Retrograde</button>
+<br />
+<input type="checkbox" ng-model="selected.randomizeEveryN">
+<span ng-class="selected.randomizeEveryN ? 'RandomizeEveryNActive' : 'RandomizeEveryNDisabled'">
+Randomize grid every
+ 
+<input fc-number-input ng-disabled="! selected.randomizeEveryN"
+		 fc-min="1" fc-max="1024"
+		 fc-model="selected.randomizeRepeatCount" >
+
+repeats.
+</span>
 <table><tbody>
 <tr ng-repeat="row in noteGrid">
 <td ng-repeat="cell in row"
@@ -62,6 +74,7 @@ stopped.
 <script type="text/javascript"
         src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
 <script type="text/javascript" src="csound.js"></script>
+<script type="text/javascript" src="csound_data.js"></script>
 <script type="text/javascript" src="seq.js"></script>
 </body>
 </html>
