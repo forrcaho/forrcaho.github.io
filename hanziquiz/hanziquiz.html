@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!--
+   hanziquiz.html
+   version 0.3.1
+   Copyright (C) 2003 by Forrest Cahoon (hanziquiz@abstractfactory.org)
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Hanzi Quiz</title>
+
+<style type="text/css">
+#score { visibility:hidden; text-align:center }
+#question { visibility:hidden; width:100%; text-align:center }
+#end_quiz { visibility:hidden; width:100%; text-align:center; font-size:18pt }
+
+/*
+** The following styles determine how the questions are displayed.
+** They are of the form <Category>_question and <Category>_choice
+** where <Category> is the category name from hanzicards.js with
+** all spaces removed.
+**
+** <Category>_question is the style for the question display, and
+** <Category>_choice is the style for the choice buttons.
+**
+** It may be necessary to adjust the font sizes here to accomodate
+** different screen resolutions.
+*/
+
+.Pinyin_choice, .English_choice {
+     width:50%; text-align:center; 
+     padding-top:12px; padding-bottom:12px;
+/*   font-size:24pt; 1280x1024 resolution */
+     font-size:16pt; /* 1024x768 resolution */
+}
+
+.Pinyin_question, .English_question {
+     width:50%; text-align:center; 
+     padding-top:12px; padding-bottom:12px; font-style:bold;
+/*   font-size:24pt; 1280x1024 resolution */
+     font-size:18pt; /* 1024x768 resolution */
+}
+
+.SimplifiedHanzi_question, .SimplifiedHanzi_choice,
+.TraditionalHanzi_question, .TraditionalHanzi_choice {
+     width:50%; text-align:center;  font-style:bold;
+/*   padding-top:12px; padding-bottom:12px; font-size:36pt; 1280x1024 */
+     padding-top:6px; padding-bottom:6px; font-size:20pt; /* 1024x768 */
+}
+</style>
+
+<script type="text/javascript" charset="utf-8" src="hanzicards.js"></script>
+<script type="text/javascript" charset="utf-8" src="hanzifuncs.js"></script>
+
+</head>
+<body onload="setup()">
+
+<div id="setup">
+<form name="f">
+<table><tr>
+<td>Show me <select id="Qsel" name="Qsel"></select></td>
+<td>and let me guess the correct <select id="Asel" name="Asel"></select></td>
+<td><input type="button" value="begin" onclick="begin_quiz()"></td>
+</tr></table>
+</form>
+</div>
+
+<div id="score">
+
+<!-- The bogus text is needed to get the spacing right at the start
+of the quiz, when this div is hidden. -->
+
+<h1 id="right_or_wrong">Right </h1>
+<p id="correct_answer">The correct answer is blah blah blah </p>
+<table align="center">
+<tr><th align="right">Right:</th>
+<td align="left" id="right_count">0</td>
+<th align="right" width="200">Wrong:</th>
+<td align="left" id="wrong_count">0</td></tr>
+</table>
+<p id="time_stats">Successfully answered nothing in no time flat</p>
+<hr>
+</div>
+
+<table id="question">
+</table>
+
+<table id="end_quiz">
+</table>
+
+</body>
+</html>

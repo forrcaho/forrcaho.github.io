@@ -1,0 +1,132 @@
+This is a program I wrote in the early 2000s to help me learn Chinese characters (and Javascript).
+I didn't think anyone was still interested in it, but I recently received an email asking about it,
+so I managed to find a copy of the final version, from 2003, to  upload here. Some of this code is
+concerned with compatibility issues during the browser wars, and so is no longer relevant. That said,
+bit rot hasn't set in; it still runs fine in today's browsers.
+
+What follows is the original README distributed with the code. Note the email address is no longer 
+valid: if you found this on Github, you can figure out how to contact me.
+
+=====================================================================================================
+
+This is the README file for Hanzi Quiz 0.3.1, 
+Copyright 2003 by Forrest Cahoon (hanziquiz@abstractfactory.org).
+
+Hanzi Quiz is distributed under the terms of the GNU General Public
+License.  See the file COPYING for details.
+
+
+REQUIREMENTS:
+
+This version of Hanzi Quiz uses Dynamic HTML, and is much slicker than
+the previous version which relied on reloading pages with JavaScript-
+generated content.  This requires a more recent browser.  Mozilla or
+its commerical variant Netscape Navigator (version 6 or greater) will
+work, as will Microsoft Internet Explorer version 5 or greater.
+
+If you're stuck with an older browser, you can still use the old
+version, which I'll try to leave up on the web for a while longer.  I
+highly encourage you to get a newer browser, though.  I especially
+recommend Mozilla (http://mozilla.org/).
+
+
+RUNNING HANZI QUIZ:
+
+To run Hanzi Quiz, open the file "hanziquiz.html" in your browser,
+making sure that the other files in this distribution reside in the
+same directory (as they should when you unpack it).  Simple!
+
+
+CHANGING FONT SIZES:
+
+It would be impossible for me to get the fonts to be appropriate sizes
+on all the different browsers, OSes, and screen resolutions where
+Hanzi Quiz might be run.
+
+I am distributing this with font sizes in the code which look decent
+in MSIE on Windows with a screen resolution of 1024x768 because I
+suspect that that is the most common configuration.  That's not the
+configuration I personally use: it's too small in Mozilla on my Debian
+GNU/Linux box with a screen resolution of 1280x1024.
+
+The font sizes are specified in a stylesheet at the top of
+hanziquiz.html.  I have left my personal font configuration "commented
+out" there.  If the default sizes don't suit you, you can change the
+comments to use mine instead, or you can edit the values however you
+please.
+
+
+ADDING/CHANGING HANZI:
+
+All the data for the quiz is in the file hanzicards.js, so named
+because I thought of them as decks of flashcards.  It should be easy
+to edit this file and add the words of your choice.  It's also
+possible to add any number of "decks" (not just one- and
+two-character).  Hopefully it's easy enough to figure out how to do
+this by inspection of the file.
+
+
+ABOUT THE PINYIN:
+
+Pinyin is a system of writing the pronunciation of Chinese words.  If
+you're studying Chinese, you're probably familiar with it.  Now that
+I've switched to Unicode in version 0.3, pinyin is represented with
+proper accent marks to indicate the tone.  This is a great improvement
+over the ASCII-ish hack of using tone numbers at the ends of the words
+used in the previous version.
+
+I wrote a Perl program to convert ASCII + tone number pinyin into
+properly accented UTF-8.  This utility, named "utf8ify_pinyin.pl", is
+included in the distribution in the hopes it will prove useful, but is
+not needed to run Hanzi Quiz.
+
+ABOUT THE ENGLISH:
+
+Like all languages, Chinese words have a lot of subtlety in their
+meanings, yet I have to sum up those meanings with just a few words.
+Do not take the English meanings too literally!  Often they are just
+the most common meaning, or the meaning the character would have by
+iteself even though it usually occurs in combinations with other
+characters.  They are really only meant as "reminders".
+I'm not trying to teach you Chinese -- just help you learn it!
+
+
+TODO:
+
+* At the end, in addition to presenting a list of wrong guesses, slow
+  guesses could be listed, because those items supposedly haven't been
+  learned as well as the others.
+
+CHANGELOG:
+
+Version 0.3.1:
+
+* The answers to recently-asked questions are not presented as choices
+  in subsequent questions.
+
+* Now works in Mac IE5+ 
+  (while still working in Mozilla and Win IE5+ ...  all these different
+  browsers with their unique bugs and workarounds are driving me batty!)
+
+Version 0.3:
+
+* A complete rewrite, using DHTML and Unicode to create a program far
+  superior to the previous ones.
+
+Version 0.2a:
+
+* Fixed a bug which made the top choice never be the correct answer.
+
+Version 0.2:
+
+* Seperate lists of one-character and two-character words, so that
+  the choices are always taken from the same list (but the questions
+  are mixed together).
+
+* Timing, to encourage you to think quickly.
+
+* A table of the questions you missed is shown at the end of the quiz.
+
+Version 0.1:
+
+* First working version.
